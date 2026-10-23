@@ -19,17 +19,69 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: 8.1.1
+    - name: Restructure Project Layout
+      run: |
+        mkdir -p app/src/main/java/com/purityguard/app
+        cp AndroidManifest.xml app/src/main/
+        cp MainActivity.kt app/src/main/java/com/purityguard/app/
+        cp PurityVpnService.kt app/src/main/java/com/purityguard/app/
+        
+        cat << 'EOF' > app/build.gradle
+        plugins {
+            id 'com.android.application'
+            id 'org.jetbrains.kotlin.android'
+        }
+
+        android {
+            namespace 'com.purityguard.app'
+            compileSdk 33
+
+            defaultConfig {
+                applicationId "com.purityguard.app"
+                minSdk 21
+                targetSdk 33
+                versionCode 1
+                versionName "1.0"
+            }
+        }
+
+        dependencies {
+            implementation 'androidx.core:core-ktx:1.10.1'
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+        }
+        EOF
+
+        cat << 'EOF' > build.gradle
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.1.1'
+                classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10'
+            }
+        }
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        EOF
+
+        cat << 'EOF' > settings.gradle
+        include ':app'
+        EOF
 
     - name: Build Debug APK
-      run: gradle assembleDebug
+      run: |
+        gradle wrapper
+        ./gradlew assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: PurityGuard-APK
-        path: build/outputs/apk/debug/*.apk
+        path: app/build/outputs/apk/debug/app-debug.apk
         
