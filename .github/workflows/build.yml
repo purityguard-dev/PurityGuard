@@ -26,6 +26,11 @@ jobs:
         cp MainActivity.kt app/src/main/java/com/purityguard/app/
         cp PurityVpnService.kt app/src/main/java/com/purityguard/app/
         
+        cat << 'EOF' > gradle.properties
+        android.useAndroidX=true
+        android.enableJetifier=true
+        EOF
+
         cat << 'EOF' > app/build.gradle
         plugins {
             id 'com.android.application'
